@@ -28,6 +28,7 @@ religionTable <- html_table(table, header=TRUE, fill = TRUE)[[1]]
 removeParenthesis <- function (str) {
   return (str_replace_all(str, "\\(.+?\\)", " "))
 }
+
 # Extract percentages from the raw data ----
 ## Get the percentage distribution for each country so that we can see the diversity of religion in the country and find the primary religion
 ## Using the first religion in the text as primary have some edge cases such as Germany, Hong Kong where highest percentage of people have none/other religion
@@ -46,19 +47,48 @@ for (i in 1:nrow(religionPerc)){
 }
 
 # Create Dataframe 
+percs <- NULL
+
 for (i in 1:nrow(religionPerc)){
+  print(i)
   relvec <- str_extract_all(religionPerc[i,2], "((?=^)|(?=\\s+))(.+?)(\\d+(\\.\\d+){0,1})(?=%)")[[1]]
-  otherperc <- 0
-  for (j in 1:length(relvec)){
-    info <- relvec[i]
-    num <- as.numeric(str_extract_all(info, \\d+(\\.\\d+){0,1}))
-    if (str_detect(info, regex('Buddhist',ignore_case = TRUE))){
-      
+  if (rlang::is_empty(relvec)){
+    print(paste0("EDGE ", i, " doesn't have percentage fix this later"))
+  }else{
+    vec <- rep(0, times= 9)
+    for (j in 1:length(relvec)){
+      info <- relvec[j]
+      nums <- str_extract_all(info, "\\d+(\\.\\d+){0,1}")
+      num <- as.numeric(nums[[1]][1])
+      if (str_detect(info, regex('Buddhist', ignore_case = TRUE))){
+        vec[1] <- num
+      }else if (str_detect(info, regex('Catholic', ignore_case = TRUE))){
+        vec[2] <- num
+      }else if (str_detect(info, regex('Hindu', ignore_case = TRUE))){
+        vec[3] <- num
+      }else if (str_detect(info, regex('Jewish', ignore_case = TRUE))){
+        vec[4] <- num
+      }else if (str_detect(info, regex('Muslim', ignore_case = TRUE))){
+        vec[5] <- num
+      }else if (str_detect(info, regex('Orthodox', ignore_case = TRUE))){
+        vec[6] <- num
+      }else if (str_detect(info, regex('Protestant', ignore_case = TRUE)) | str_detect(info, regex('Christian', ignore_case = TRUE))){
+        vec[7] <- vec[7] + num
+      }else if (str_detect(info, regex('None', ignore_case = TRUE))){
+        vec[8] <- num
+      }else {
+        if (str_detect(info, regex('other', ignore_case = TRUE)) == FALSE & str_detect(info, regex('unspecified', ignore_case = TRUE)) == FALSE){ # when it was not explicitly "other"
+          print(paste0(j, " ", info))
+        }
+        vec[9] <- vec[9] + num
+        otherperc <- otherperc + num
+      }
     }
+    percs <- rbind.data.frame(percs, c(as.character(religionPerc[i,1]), vec), stringsAsFactors = FALSE)
   }
 }
-str_extract_all(religionPerc[225,2], "((?=^)|(?=\\s+))(.+?)(\\d+(\\.\\d+){0,1})(?=%)")
-colnames(religion) <- c("Country", "Buddhist", "Catholic", "Hindu", "Jewish", "Muslim", "Orthodox", "Protestant", "None", "Other")
+colnames(percs) <- c("Country", "Buddhist", "Catholic", "Hindu", "Jewish", "Muslim", "Orthodox", "Protestant", "None", "Other")
+#write.csv(percs, "H:\\GTD\\ReligionPercs.csv") # save for future purpose
 
 # Extract Primary Religion for each country ----
 
