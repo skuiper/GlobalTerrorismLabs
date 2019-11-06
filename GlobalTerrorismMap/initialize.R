@@ -1,58 +1,20 @@
-
-#
-
-progress <- shiny::Progress$new()
-
-##
-
-progress$set(value = 0.1, message = "Loading packages",
-             detail = "leaflet")
-if ( !require(leaflet) ) install.packages('leaflet')
-library('leaflet')
-###
-
-progress$set(value = 0.15, message = "Loading packages",
-             detail = "maptools")
-if ( !require(maptools) ) install.packages('maptools')
-library(maptools)
-
-####
-
-progress$set(value = 0.2, message = "Loading packages",
-             detail = "shinydashboard")
-if ( !require(shinydashboard) ) install.packages('shinydashboard')
+library(shiny)
 library(shinydashboard)
-
-#####
-
-progress$set(value = 0.25, message = "Loading packages",
-             detail = "magrittr")
-if ( !require(magrittr) ) install.packages('magrittr')
+library(leaflet)
+library(maptools)
 library(magrittr)
+library(sf)
+library(maps)
 
-######
+worldshapes <-  sf::st_read('~/GTD/worldshapes/worldshapes.shp')
+print("Load worldshapes")
 
-progress$set(value = 0.3, message = "Loading datasets",
-             detail = "ESRI shapefile")
-worldshapes <- readShapeSpatial('worldshapes/worldshapes')
+regionData <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/GlobalTerrorismMap/regionData.csv")
+print("Loaded region data")
 
-########
+terrorismData <- read.csv('~/GTD/terrorismData.csv')
+print("Load terrorism data")
 
-progress$set(value = 0.4, message = "Loading datasets",
-             detail = "Country data")
-require(readr)
-regionData <- read_csv('regionData.csv')
-
-############
-
-progress$set(message = "Loading datasets", value = 0.6,
-             detail = "Terrorism database")
-terrorismData <- read_csv('terrorismData.csv')
-
-##################
-
-progress$set(value = 0.9, message = "Loading datasets",
-             detail = "Region information")
 regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
                                      'NorthAm' = 'North America',
                                      'SouthAs' = 'South Asia',
@@ -88,7 +50,3 @@ regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
                                   'Eurasia' = 3,
                                   'LatinAm' = 3,
                                   'AsiaPac' = 3))}
-
-####################
-
-progress$close()
