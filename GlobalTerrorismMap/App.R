@@ -4,42 +4,83 @@ library(leaflet)
 library(maptools)
 library(magrittr)
 
-require('initialize.R')
+#require('initialize.R')
 print("Finished initializing")
+worldshapes <-  sf::st_read('~/GTD/worldshapes/worldshapes.shp')
+print("Load worldshapes")
+
+regionData <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/GlobalTerrorismMap/regionData.csv")
+print("Loaded region data")
+
+library(dplyr)
+terrorismData <- read.csv('~/GTD/terrorismData.csv')
+terrorismData <-filter(td, !(is.na(terrorismData$Latitude) | is.na(terrorismData$Longitude)))
+print("Load terrorism data")
+
+regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
+                                     'NorthAm' = 'North America',
+                                     'SouthAs' = 'South Asia',
+                                     'SubSahr' = 'Sub-Saharan Africa',
+                                     'Eurasia' = 'Europe & Central Asia',
+                                     'LatinAm' = 'Latin America & Caribbean',
+                                     'AsiaPac' = 'East Asia & Pacific'),
+                          'Map' = c('MidEast' = 'MidEastMap',
+                                    'NorthAm' = 'NorthAmMap',
+                                    'SouthAs' = 'SouthAsMap',
+                                    'SubSahr' = 'SubSahrMap',
+                                    'Eurasia' = 'EurasiaMap',
+                                    'LatinAm' = 'LatinAmMap',
+                                    'AsiaPac' = 'AsiaPacMap'),
+                          'X' = c('MidEast' = 23,
+                                  'NorthAm' = -95,
+                                  'SouthAs' = 78,
+                                  'SubSahr' = 17,
+                                  'Eurasia' = 35,
+                                  'LatinAm' = -85,
+                                  'AsiaPac' = 130),
+                          'Y' = c('MidEast' = 28,
+                                  'NorthAm' = 38,
+                                  'SouthAs' = 24,
+                                  'SubSahr' = -5,
+                                  'Eurasia' = 50,
+                                  'LatinAm' = -10,
+                                  'AsiaPac' = 5),
+                          'Z' = c('MidEast' = 4,
+                                  'NorthAm' = 4,
+                                  'SouthAs' = 5,
+                                  'SubSahr' = 4,
+                                  'Eurasia' = 3,
+                                  'LatinAm' = 3,
+                                  'AsiaPac' = 3))}
 
 #--------------------------------------------------------------------------------------------------------------------#
 #                                             DEFINE USER INTERFACE                                                  #
 #--------------------------------------------------------------------------------------------------------------------#
 
-ui <- dashboardPage(
-  skin="blue",
-  dashboardHeader(title="Exploring Terrorism"),
-  
-  dashboardSidebar(
-    selectInput('region', "Region", choices = c(
-      'Middle East & North Africa' = "MidEast",
-      "North America" = "NorthAm",
-      "South Asia" = "SouthAs",
-      "Sub-Saharan Africa" = "SubSahr",
-      "Europe & Central Asia" = "Eurasia",
-      "Latin America & Caribbean" = "LatinAm",
-      "East Asia & Pacific" = "AsiaPac"
-    )),
-    sliderInput("year",
-                "Year",
-                min = 1970,
-                max = 2013,
-                value = 1970,
-                step = 1,
-                sep = "",
-                animate = animationOptions(interval = 1000)),
-    
-    htmlOutput('sidebarText')
-  ),
-  
-  dashboardBody(
-    tags$head(tags$style(HTML( # Additional style parameters
-      '
+sidebar <- dashboardSidebar(
+  selectInput('region', "Region", choices = c(
+    'Middle East & North Africa' = "MidEast",
+    "North America" = "NorthAm",
+    "South Asia" = "SouthAs",
+    "Sub-Saharan Africa" = "SubSahr",
+    "Europe & Central Asia" = "Eurasia",
+    "Latin America & Caribbean" = "LatinAm",
+    "East Asia & Pacific" = "AsiaPac"
+  )),
+  sliderInput("year",
+              "Year",
+              min = 1970,
+              max = 2017,
+              value = 1970,
+              step = 1,
+              sep = "",
+              animate = animationOptions(interval = 1000)),
+  htmlOutput('sidebarText')
+)
+
+body <- dashboardBody(
+  tags$head(tags$style(HTML( # Additional style parameters
+    '
                               html, body {
                                    font-size: 1em;
                                    width: 100%;
@@ -75,54 +116,47 @@ ui <- dashboardPage(
                                    white-space: nowrap;
                               }
                              '))),
-    leafletOutput("Map", width='100%', height='60em')
-    
-    
-  )
-  
+  leafletOutput("Map", width='100%', height='60em')
 )
+
+ui <- dashboardPage(dashboardHeader(title="Exploring Terrorism"),
+                    sidebar, body)
 
 #--------------------------------------------------------------------------------------------------------------------#
 #                                             DEFINE SERVER LOGIC                                                    #
 #--------------------------------------------------------------------------------------------------------------------#
 
 server <- function(input, output) {
-  
-  # Checks if data is already loaded, and initializes data with a progress bar if not
-  if(!(exists('regionData') & exists('regionInfo'))) source("initialize.R")
-  
-  ##########################################################################
-  ############################ Creating the Maps ###########################
-  ##########################################################################
-  
-  #    Main functions
-  
+  #----------------------------------------------------------------------------------------------------------------#
+  #                                                 CREATE MAP                                                     #
+  #----------------------------------------------------------------------------------------------------------------#
   updateMarkers <- function(){
-    
     regionName <- regionInfo[input$region, ]$Name
-    
-    regionEvents <- terrorismData[terrorismData$iyear == input$year &
-                                    terrorismData$region2 == regionName,]
-    
+    regionEvents <- terrorismData[terrorismData$Year == input$year & terrorismData$MapRegion == regionName,]
     mapshapes <- worldshapes[worldshapes$region_wb == regionName,]
+    regionEvents$info <- paste0("<b>Event ID:</b>", regionEvents$"ID", "<br/><b>Date:</b>",regionEvents$"Month","/", regionEvents$"Day", "/", regionEvents$"Year",
+                                "<br/><b>Location:</b>", regionEvents$"City", ",", regionEvents$"Country", "<br/><b>Group name:</b>", regionEvents$"GroupName",
+                                "<br/><b>Target:</b>", regionEvents$"Target", "<br/><b>Attack type:</b>", regionEvents$"Attack",
+                                "<br/><b>Weapon type:</b>", regionEvents$"Weapon", "<br/><b>Deaths:</b>", regionEvents$"nKill",
+                                "<br/><b>Wounded:</b>", regionEvents$"nWound", 
+                                "</br><a href='http://www.start.umd.edu/gtd/search/IncidentSummary.aspx?gtdid=", regionEvents$ID, "'>Database entry for this event.</a>"
+    )
     
-    mapdata <- regionData[regionData$Year == input$year &
-                            regionData$Country %in% mapshapes$admin,]
-    
-    #         Checks if there are any events for that year and breaks if there aren't any
+    # Checks if there are any events for that year and breaks if there aren't any
     if(nrow(regionEvents) == 0) return()
     
-    #         Renders markers if there are
+    #   Renders markers if there are
     leafletProxy('Map') %>% clearMarkers()
     leafletProxy('Map') %>% addCircleMarkers(
-      lng=regionEvents$longitude, lat=regionEvents$latitude,
+      lng=regionEvents$Longitude, lat=regionEvents$Latitude,
       color = "red", opacity = .2, weight = 7,
       fillColor = "yellow", fillOpacity = .7,
-      radius = regionEvents$severity,
+      radius = regionEvents$Severity,
       popup = regionEvents$info
     )
     
   }
+  
   updateRegion <- function(){
     region <- regionInfo[input$region,]
     
@@ -147,25 +181,20 @@ server <- function(input, output) {
     #                addTiles('http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.png')
   })
   
-  #    Updates polygons and markers whenever year changes
+   #    Updates polygons and markers whenever year changes
   observeEvent({input$year}, {
     updateMarkers()
   })
-  
+
   #    Reloads everything when new region selected
   observeEvent({input$region}, {
     updateRegion()
     updateMarkers()
   })
   
-  
-  
-  ###############################################################################
-  ##################### Creating the Information Box ############################
-  ###############################################################################
-  
-  
-  
+  #----------------------------------------------------------------------------------------------------------------#
+  #                                                    Info Box                                                    #
+  #----------------------------------------------------------------------------------------------------------------#
   # Text to be displayed in the side bar
   output$sidebarText <- renderText({"
           <div style='padding:1em'>
