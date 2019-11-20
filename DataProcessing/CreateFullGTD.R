@@ -13,9 +13,9 @@ gtd14to17 <- read_excel("H:/GTD/gtd_14to17_0718dist.xlsx")
 
 # Modify and Extract Columns for Merged Version ----
 extractColumns <- function (df){
-  temp <- data.frame (format(df$"eventid", scientific=F), df$"iyear", df$"country_txt", df$"region_txt", df$"success", df$"attacktype1_txt",
-                      df$"targtype1_txt", df$"weaptype1_txt", df$"nkill", df$"nwound")
-  colnames(temp) <- c("ID", "Year", "Country", "Region", "Success", "AttackType",
+  temp <- data.frame (format(df$"eventid", scientific=F), df$"iyear", df$"country_txt", df$"region_txt", df$"provstate",
+                      df$"success", df$"attacktype1_txt", df$"targtype1_txt", df$"weaptype1_txt", df$"nkill", df$"nwound")
+  colnames(temp) <- c("ID", "Year", "Country", "Region", "ProvState", "Success", "AttackType",
                       "TargetType", "WeaponType", "Fatalities", "Wounded")
   return (temp)
 }
@@ -26,7 +26,7 @@ newgtd96 <-extractColumns(gtd96to13)
 newgtd14 <-extractColumns(gtd14to17)
 
 mergedGTD <- rbind.data.frame(newgtd70, newgtd96, newgtd14)
-write.csv(mergedGTD, "H:\\GTD\\mergeGTD.csv")
+write.csv(mergedGTD, "H:\\GTDdata\\mergeGTD.csv")
 
 # Add "NumCode" (ISO 3166-1) country code ----
 ## Create dataframe with country code retrieved from wikipedia
@@ -37,8 +37,8 @@ isoCode[1,1] <- "004"
 isoCode$Code <- as.numeric(isoCode$Code)
 colnames(isoCode) <- c("NumCode", "Country")
 row.names(isoCode) <- NULL
-mergedGTD$Country <- as.character(mergedGTD$Country)
 
+mergedGTD$Country <- as.character(mergedGTD$Country)
 ## Correcting Country names ----
 mergedGTD$Country[mergedGTD$Country == "East Germany (GDR)"] <- "Germany"
 mergedGTD$Country[mergedGTD$Country == "Czechoslovakia"] <- "Czech Republic"
@@ -52,7 +52,6 @@ mergedGTD$Country[mergedGTD$Country == "Zimbabwe"] <- "Rhodesia"
 mergedGTD$Country[mergedGTD$Country == "Guadeloupe"] <- "France"
 mergedGTD$Country[mergedGTD$Country == "Martinique"] <- "France"
 mergedGTD$Country[mergedGTD$Country == "French Guiana"] <- "France"
-
 
 isoCodeModified <- rbind.data.frame(isoCode, c(704, "South Vietnam"))
 isoCodeModified <- rbind.data.frame(isoCodeModified, c(276, "West Germany (FRG)"))
@@ -88,14 +87,13 @@ isoCodeModified$Country[isoCodeModified$Country == "Moldova, Republic of"] <- "M
 isoCodeModified$Country[isoCodeModified$Country == "Côte d'Ivoire"] <- "Ivory Coast"
 isoCodeModified$Country[isoCodeModified$Country == "Vanuatu"] <- "New Hebrides"
 
-#### get list of missing country codes
+#### get list of missing country codes -> Soviet Union and International
 missing <- anti_join(x= mergedGTD, y = isoCodeModified, by = "Country")
 unique(missing$Country)
 
 ## Join mergedGTD and ISO Country Code dataframe
-fullGTD <- left_join(x = mergedGTD, y = isoCode, by = "Country")
+fullGTD <- left_join(x = mergedGTD, y = isoCodeModified, by = "Country")
 fullGTD$Year <- as.numeric(fullGTD$Year)
-#fullGTD <- read.csv("H:/GTD/fullGTD.csv") 
 
 # Add "NumIncidents" ----
 ### The number of incidents in the same country and year as the particular observation
@@ -135,7 +133,7 @@ fullGTDfinal <- filter(fullGTD, !is.na(ID)) # delete rows without id created whe
 fullGTDfinal$Primary[fullGTDfinal$Country == "West Germany (FRG)"] <- fullGTDfinal$Primary[fullGTDfinal$Country == "Germany"][1]
 fullGTDfinal$Primary[fullGTDfinal$Country == "South Vietnam"] <- fullGTDfinal$Primary[fullGTDfinal$Country == "Vietnam"][1]
 
-write.csv(fullGTDfinal, "H:/GTD/GTDfinal.csv", row.names = FALSE)
+write.csv(fullGTDfinal, "H:/GTDdata/GTDfinal.csv", row.names = FALSE)
 
 # Missing Primary Religion 
 # Ivory Coast
