@@ -4,18 +4,8 @@ library(leaflet)
 library(maptools)
 library(magrittr)
 
-#require('initialize.R')
+source('initialize.R')
 print("Finished initializing")
-worldshapes <-  sf::st_read('~/GTD/worldshapes/worldshapes.shp')
-print("Load worldshapes")
-
-regionData <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/GlobalTerrorismMap/regionData.csv")
-print("Loaded region data")
-
-library(dplyr)
-terrorismData <- read.csv('~/GTD/terrorismData.csv')
-terrorismData <-filter(td, !(is.na(terrorismData$Latitude) | is.na(terrorismData$Longitude)))
-print("Load terrorism data")
 
 regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
                                      'NorthAm' = 'North America',
@@ -181,11 +171,7 @@ server <- function(input, output) {
     #                addTiles('http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.png')
   })
   
-   #    Updates polygons and markers whenever year changes
-  observeEvent({input$year}, {
-    updateMarkers()
-  })
-
+  
   #    Reloads everything when new region selected
   observeEvent({input$region}, {
     updateRegion()
@@ -193,7 +179,7 @@ server <- function(input, output) {
   })
   
   #----------------------------------------------------------------------------------------------------------------#
-  #                                                    Info Box                                                    #
+  #                                             DEFINE Info Box                                                    #
   #----------------------------------------------------------------------------------------------------------------#
   # Text to be displayed in the side bar
   output$sidebarText <- renderText({"

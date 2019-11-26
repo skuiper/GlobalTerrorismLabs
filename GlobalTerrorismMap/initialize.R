@@ -5,14 +5,13 @@ library(maptools)
 library(magrittr)
 library(sf)
 library(maps)
+library(dplyr)
 
 worldshapes <-  sf::st_read('~/GTD/worldshapes/worldshapes.shp')
 print("Load worldshapes")
 
-regionData <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/GlobalTerrorismMap/regionData.csv")
-print("Loaded region data")
-
-terrorismData <- read.csv('~/GTD/terrorismData.csv')
+terrorismData <- read.csv("C:/Users/stella/Documents/GTD/Map/terrorismData.csv")
+terrorismData <-filter(terrorismData, !(is.na(terrorismData$Latitude) | is.na(terrorismData$Longitude)))
 print("Load terrorism data")
 
 regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
