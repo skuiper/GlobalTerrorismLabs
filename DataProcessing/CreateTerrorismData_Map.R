@@ -1,3 +1,4 @@
+library(dplyr)
 # Building TerrorismData for GlobalTerrorism Map
 
 # Loading Library ----
@@ -30,5 +31,5 @@ newgtd14 <-extractColumns(gtd14to17)
 mergedGTD <- rbind.data.frame(newgtd70, newgtd96, newgtd14)
 
 # Create Severity column
-mergedGTD["Severity"] <- mergedGTD["nKill"] + 0.25 * mergedGTD["nWound"]
+mergedGTD["Severity"] <- 2*log(4*mergedGTD["nKill"] + mergedGTD["nWound"]+1)
 write.csv(mergedGTD, "H:\\GTDdata\\terrorismData.csv")
