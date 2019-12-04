@@ -11,7 +11,14 @@ worldshapes <-  sf::st_read('~/GTD/worldshapes/worldshapes.shp')
 print("Load worldshapes")
 
 terrorismData <- read.csv("C:/Users/stella/Documents/GTD/Map/terrorismData.csv")
-terrorismData <-filter(terrorismData, !(is.na(terrorismData$Latitude) | is.na(terrorismData$Longitude)))
+
+options(scipen=999) # turn off scientific notification
+terrorismData$info <- paste0("<b>Event ID: </b>", terrorismData$"ID", "<br/><b>Date: </b>",terrorismData$"Month","/", terrorismData$"Day", "/", terrorismData$"Year",
+                            "<br/><b>Location: </b>", terrorismData$"City", ", ", terrorismData$"Country", "<br/><b>Group name: </b>", terrorismData$"GroupName",
+                            "<br/><b>Target: </b>", terrorismData$"Target", "<br/><b>Attack type: </b>", terrorismData$"Attack",
+                            "<br/><b>Weapon type: </b>", terrorismData$"Weapon", "<br/><b>Deaths: </b>", terrorismData$"nKill",
+                            "<br/><b>Wounded: </b>", terrorismData$"nWound", 
+                            "</br><a href='http://www.start.umd.edu/gtd/search/IncidentSummary.aspx?gtdid=", terrorismData$ID, "'>Database entry for this event.</a>")
 print("Load terrorism data")
 
 regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
