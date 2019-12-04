@@ -7,48 +7,13 @@ library(magrittr)
 source('initialize.R')
 print("Finished initializing")
 
-regionInfo <- {data.frame('Name' = c('MidEast' = 'Middle East & North Africa',
-                                     'NorthAm' = 'North America',
-                                     'SouthAs' = 'South Asia',
-                                     'SubSahr' = 'Sub-Saharan Africa',
-                                     'Eurasia' = 'Europe & Central Asia',
-                                     'LatinAm' = 'Latin America & Caribbean',
-                                     'AsiaPac' = 'East Asia & Pacific'),
-                          'Map' = c('MidEast' = 'MidEastMap',
-                                    'NorthAm' = 'NorthAmMap',
-                                    'SouthAs' = 'SouthAsMap',
-                                    'SubSahr' = 'SubSahrMap',
-                                    'Eurasia' = 'EurasiaMap',
-                                    'LatinAm' = 'LatinAmMap',
-                                    'AsiaPac' = 'AsiaPacMap'),
-                          'X' = c('MidEast' = 23,
-                                  'NorthAm' = -95,
-                                  'SouthAs' = 78,
-                                  'SubSahr' = 17,
-                                  'Eurasia' = 35,
-                                  'LatinAm' = -85,
-                                  'AsiaPac' = 130),
-                          'Y' = c('MidEast' = 28,
-                                  'NorthAm' = 38,
-                                  'SouthAs' = 24,
-                                  'SubSahr' = -5,
-                                  'Eurasia' = 50,
-                                  'LatinAm' = -10,
-                                  'AsiaPac' = 5),
-                          'Z' = c('MidEast' = 4,
-                                  'NorthAm' = 4,
-                                  'SouthAs' = 5,
-                                  'SubSahr' = 4,
-                                  'Eurasia' = 3,
-                                  'LatinAm' = 3,
-                                  'AsiaPac' = 3))}
-
 #--------------------------------------------------------------------------------------------------------------------#
 #                                             DEFINE USER INTERFACE                                                  #
 #--------------------------------------------------------------------------------------------------------------------#
 
 sidebar <- dashboardSidebar(
   selectInput('region', "Region", choices = c(
+    "World" = "World",
     'Middle East & North Africa' = "MidEast",
     "North America" = "NorthAm",
     "South Asia" = "SouthAs",
@@ -65,6 +30,7 @@ sidebar <- dashboardSidebar(
               step = 1,
               sep = "",
               animate = animationOptions(interval = 1000)),
+  checkboxInput("prediction", "Include incidents with predicted locations", value = FALSE),
   htmlOutput('sidebarText')
 )
 
@@ -121,16 +87,24 @@ server <- function(input, output) {
   #                                                 CREATE MAP                                                     #
   #----------------------------------------------------------------------------------------------------------------#
   updateMarkers <- function(){
-    regionName <- regionInfo[input$region, ]$Name
-    regionEvents <- terrorismData[terrorismData$Year == input$year & terrorismData$MapRegion == regionName,]
-    mapshapes <- worldshapes[worldshapes$region_wb == regionName,]
+    if (input$region == "World"){
+      regionEvents <-terrorismData[terrorismData$Year == input$year,]
+      mapshapes <- worldshapes
+    }else{
+      regionName <- regionInfo[input$region, ]$Name
+      regionEvents <- terrorismData[terrorismData$Year == input$year & terrorismData$MapRegion == regionName,]
+      mapshapes <- worldshapes[worldshapes$region_wb == regionName,]
+    }
+    
     regionEvents$info <- paste0("<b>Event ID:</b>", regionEvents$"ID", "<br/><b>Date:</b>",regionEvents$"Month","/", regionEvents$"Day", "/", regionEvents$"Year",
                                 "<br/><b>Location:</b>", regionEvents$"City", ",", regionEvents$"Country", "<br/><b>Group name:</b>", regionEvents$"GroupName",
                                 "<br/><b>Target:</b>", regionEvents$"Target", "<br/><b>Attack type:</b>", regionEvents$"Attack",
                                 "<br/><b>Weapon type:</b>", regionEvents$"Weapon", "<br/><b>Deaths:</b>", regionEvents$"nKill",
                                 "<br/><b>Wounded:</b>", regionEvents$"nWound", 
-                                "</br><a href='http://www.start.umd.edu/gtd/search/IncidentSummary.aspx?gtdid=", regionEvents$ID, "'>Database entry for this event.</a>"
-    )
+                                "</br><a href='http://www.start.umd.edu/gtd/search/IncidentSummary.aspx?gtdid=", regionEvents$ID, "'>Database entry for this event.</a>")
+    if (input$prediction == FALSE){
+      regionEvents <- filter(regionEvents, MissLocation == 0)
+    }
     
     # Checks if there are any events for that year and breaks if there aren't any
     if(nrow(regionEvents) == 0) return()
@@ -148,33 +122,48 @@ server <- function(input, output) {
   }
   
   updateRegion <- function(){
-    region <- regionInfo[input$region,]
-    
-    regionName <- regionInfo[input$region, ]$Name
-    mapshapes <- worldshapes[worldshapes$region_wb == regionName,]
-    
-    leafletProxy('Map') %>%
-      clearShapes %>%
-      clearControls %>%
-      clearMarkers %>%
-      setView(region$X, region$Y, zoom = region$Z) %>%
-      addPolygons(
-        data = mapshapes, layerId = ~admin,
-        weight = 2, fillColor = "#12AFFF",
-        color = "black", fillOpacity = 0.3)
+    if (input$region == "World"){
+      leafletProxy('Map') %>%
+        clearShapes %>%
+        clearControls %>%
+        clearMarkers %>%
+        setView(35, 40, zoom = 2)
+    }else{
+      region <- regionInfo[input$region,]
+      regionName <- regionInfo[input$region, ]$Name
+      mapshapes <- worldshapes[worldshapes$region_wb == regionName,]
+      leafletProxy('Map') %>%
+        clearShapes %>%
+        clearControls %>%
+        clearMarkers %>%
+        setView(region$X, region$Y, zoom = region$Z) %>%
+        addPolygons(
+          data = mapshapes, layerId = ~admin,
+          weight = 2, fillColor = "#12AFFF",
+          color = "black", fillOpacity = 0.3)
+    }
   }
   
-  #    Create blank map
+  # Create blank map
   output$Map <- renderLeaflet({
     leaflet()  %>%
       addProviderTiles("CartoDB.Positron")
-    #                addTiles('http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.png')
+    #addTiles('http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.png')
   })
   
-  
-  #    Reloads everything when new region selected
+  # Update map when new region is selected
   observeEvent({input$region}, {
     updateRegion()
+    updateMarkers()
+  })
+  
+  # Update map when new year is selected
+  observeEvent({input$year}, {
+    updateMarkers()
+  })
+  
+  # Update map when prediction is selected
+  observeEvent({input$prediction}, {
     updateMarkers()
   })
   
