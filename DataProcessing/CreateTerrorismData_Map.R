@@ -1,4 +1,3 @@
-library(dplyr)
 # Building TerrorismData for GlobalTerrorism Map
 
 # Loading Library ----
@@ -32,4 +31,15 @@ mergedGTD <- rbind.data.frame(newgtd70, newgtd96, newgtd14)
 
 # Create Severity column
 mergedGTD["Severity"] <- 2*log(4*mergedGTD["nKill"] + mergedGTD["nWound"]+1)
+
+# Create Prediction for missing locations
+td <- mutate(td, MissLocation = ifelse(is.na(Latitude) | is.na(Longitude), 1, 0))
+
+centroids <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Country_Centroids.csv")
+
+missing <- filter(td, MissLocation ==1)
+missing$City <- as.character(missing$City)
+
+miss_by_country_year <- filter(as.data.frame(table(missing$Country, missing$Year)), Freq > 0)
+
 write.csv(mergedGTD, "H:\\GTDdata\\terrorismData.csv")
