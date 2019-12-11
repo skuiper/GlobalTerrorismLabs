@@ -2,6 +2,9 @@
 
 library(dplyr)
 library(tidyr)
+library(rvest)
+library(stringr)
+library(readr)
 
 # Load datasets
 wb1 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/WorldBank/GDPUnemploymentWorldBank.csv")
@@ -34,44 +37,57 @@ LabourRate <- filter(wb4, Series.Code =="SL.TLF.ACTI.ZS")
 # Gather data
 year_to_variable <- function (df){
   df <- gather(data=df, key = year, value = var,
-         "1970", "1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
-         "1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990", "1991", "1992",
-         "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002", "2003", "2004",
-         "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
-  return (df[,c(-1,-2, -4)])
+               "1970", "1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
+               "1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990", "1991", "1992",
+               "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002", "2003", "2004",
+               "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
+  return (df[,c(-1,-2)])
 }
 
 GDPPerCapita <- year_to_variable(GDPPerCapita)
-colnames(GDPPerCapita) <- c("Country", "Year", "GDPPerCapita")
+colnames(GDPPerCapita) <- c("Country", "ISOCode", "Year", "GDPPerCapita")
 FemaleUnemploymentRate <- year_to_variable(FemaleUnemploymentRate)
-colnames(FemaleUnemploymentRate) <- c("Country", "Year", "FemaleUnemploymentRate")
+colnames(FemaleUnemploymentRate) <- c("Country", "ISOCode","Year", "FemaleUnemploymentRate")
 ElectricityPerCapita <- year_to_variable(ElectricityPerCapita)
-colnames(ElectricityPerCapita) <- c("Country", "Year",  "ElectricityPerCapita")
+colnames(ElectricityPerCapita) <- c("Country", "ISOCode", "Year", "ElectricityPerCapita")
 Population <- year_to_variable(Population)
-colnames(Population) <- c("Country", "Year", "Population")
+colnames(Population) <- c("Country", "ISOCode", "Year", "Population")
 PopulationDensity <- year_to_variable(PopulationDensity)
-colnames(PopulationDensity) <- c("Country", "Year", "PopulationDensity")
+colnames(PopulationDensity) <- c("Country", "ISOCode", "Year",  "PopulationDensity")
 ChildrenPerWoman <- year_to_variable(ChildrenPerWoman)
-colnames(ChildrenPerWoman) <- c("Country", "Year",  "ChildrenPerWoman")
+colnames(ChildrenPerWoman) <- c("Country", "ISOCode", "Year",  "ChildrenPerWoman")
 ChildMortalityRate <- year_to_variable(ChildMortalityRate)
-colnames(ChildMortalityRate) <- c("Country", "Year",  "ChildMortalityRate")
+colnames(ChildMortalityRate) <- c("Country", "ISOCode", "Year",  "ChildMortalityRate")
 LabourRate <- year_to_variable(LabourRate)
-colnames(LabourRate) <- c("Country", "Year",  "LabourRate")
+colnames(LabourRate) <- c("Country", "ISOCode", "Year", "LabourRate")
 
 # Change population variable to Population in millions
 Population$PopulationInMillions <- as.numeric(Population$Population) / 1000000
 
 # Merge dataset
-WorldBank <- full_join(x = GDPPerCapita, y = FemaleUnemploymentRate, by = c("Country", "Year")) %>%
-  full_join(x = ., y = ElectricityPerCapita, by = c("Country", "Year")) %>%
-  full_join(x = ., y = Population, by = c("Country", "Year")) %>%
-  full_join(x = ., y = PopulationDensity, by = c("Country", "Year")) %>%
-  full_join(x = ., y = ChildrenPerWoman, by = c("Country", "Year")) %>%
-  full_join(x = ., y = ChildMortalityRate, by = c("Country", "Year")) %>%
-  full_join(x = ., y = LabourRate, by = c("Country", "Year"))
+WorldBank <- full_join(x = GDPPerCapita, y = FemaleUnemploymentRate[,-2], by = c("Country", "Year"))%>%
+  full_join(x = ., y = ElectricityPerCapita[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = Population[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = PopulationDensity[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = ChildrenPerWoman[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = ChildMortalityRate[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = LabourRate[,-2], by = c("Country", "Year"))
 
-codes <- as.data.frame(table(wb1$Country.Name, wb1$Country.Code))[,-3]
-colnames(codes) <- c("Country", "ISOCode")
+# Resolve conflict with GTD data country name ----
+GTD <- read.csv("H:/GTDdata/GTDfinal.csv")
+GTD$Country <- as.character(GTD$Country)
+WorldBank$Country <- as.character(WorldBank$Country)
 
-WorldBank <- full_join(x=WorldBank, y=codes, by="Country")
-write.csv(WorldBank, filepath)
+isoCode <- read_html("https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes") %>% 
+  html_nodes(., "table")%>%
+  html_table(., header = TRUE, fill = TRUE) %>%.[[1]]%>%.[-1,c(5,6)]
+colnames(isoCode) <- c("ISOCode", "NumCode")
+
+isoCode$ISOCode <- as.character(isoCode$ISOCode)
+WorldBank$ISOCode <- as.character(WorldBank$ISOCode)
+t <- left_join(x=WorldBank, y = isoCode, by = "ISOCode")
+GTD$NumCode <- as.character(GTD$NumCode)
+t$NumCode <- as.character(t$NumCode)
+temp <- left_join(x=GTD, y = t, by ="NumCode")
+
+write.csv(WorldBank, "H:/GTDdata/WorldBankData.csv")
