@@ -1,5 +1,4 @@
-# Merge GM Data
-
+# Merge Worldbank Data
 library(dplyr)
 library(tidyr)
 library(rvest)
@@ -73,21 +72,20 @@ WorldBank <- full_join(x = GDPPerCapita, y = FemaleUnemploymentRate[,-2], by = c
   full_join(x = ., y = ChildMortalityRate[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = LabourRate[,-2], by = c("Country", "Year"))
 
-# Resolve conflict with GTD data country name ----
-GTD <- read.csv("H:/GTDdata/GTDfinal.csv")
-GTD$Country <- as.character(GTD$Country)
-WorldBank$Country <- as.character(WorldBank$Country)
+WorldBank$ISOCode <- as.character(WorldBank$ISOCode)
 
 isoCode <- read_html("https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes") %>% 
   html_nodes(., "table")%>%
   html_table(., header = TRUE, fill = TRUE) %>%.[[1]]%>%.[-1,c(5,6)]
 colnames(isoCode) <- c("ISOCode", "NumCode")
 
-isoCode$ISOCode <- as.character(isoCode$ISOCode)
-WorldBank$ISOCode <- as.character(WorldBank$ISOCode)
-t <- left_join(x=WorldBank, y = isoCode, by = "ISOCode")
-GTD$NumCode <- as.character(GTD$NumCode)
-t$NumCode <- as.character(t$NumCode)
-temp <- left_join(x=GTD, y = t, by ="NumCode")
+WorldBank <- left_join(x=WorldBank, y = isoCode, by = "ISOCode")
 
-write.csv(WorldBank, "H:/GTDdata/WorldBankData.csv")
+# Resolve conflict with GTD data country name ----
+GTD <- read.csv("H:/GTDdata/GTDfinal.csv")
+GTD$NumCode <- as.numeric(GTD$NumCode)
+WorldBank$NumCode <- as.numeric(WorldBank$NumCode)
+diff <- anti_join(x=GTD, y = WorldBank, by ="NumCode")
+diff2 <- anti_join(x=WorldBank, y = GTD, by ="NumCode")
+
+write.csv(WorldBank, "WorldBankData.csv")
