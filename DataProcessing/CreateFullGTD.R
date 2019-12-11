@@ -53,7 +53,7 @@ mergedGTD$Country[mergedGTD$Country == "Guadeloupe"] <- "France"
 mergedGTD$Country[mergedGTD$Country == "Martinique"] <- "France"
 mergedGTD$Country[mergedGTD$Country == "French Guiana"] <- "France"
 
-isoCodeModified <- rbind.data.frame(isoCode, c(704, "South Vietnam"))
+isoCodeModified <- rbind.data.frame(isoCodeModified, c(704, "South Vietnam"))
 isoCodeModified <- rbind.data.frame(isoCodeModified, c(276, "West Germany (FRG)"))
 isoCodeModified$Country[isoCodeModified$Country == "United States of America"] <- "United States"
 isoCodeModified$Country[isoCodeModified$Country == "Korea (Democratic People's Republic of)"] <- "North Korea"
