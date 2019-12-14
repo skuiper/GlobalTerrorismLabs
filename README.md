@@ -22,7 +22,7 @@ Deployed GTD Plot shiny app could be found in following [link](http://shiny.grin
 * The Global Terrorism database by National Consortium for the Study of Terrorism and Responses to Terrorism [[here](https://www.start.umd.edu/data-tools/global-terrorism-database-gtd)] 
 * WorldBank Database [here]
 * Wikipedia ISO Country Code [here]
-* Country Centroid Data [here]
+* Country Centroid Data from  [[here](https://worldmap.harvard.edu/data/geonode:country_centroids_az8)]
 
 ## Required Libraries
 
