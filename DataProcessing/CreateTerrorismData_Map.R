@@ -7,10 +7,12 @@ library(rvest)
 library(stringr)
 library(readr)
 
+path = "FOLDER PATH TO RAW DATA"
+
 # Load Datasets ----
-gtd70to95 <- read_excel("H:/GTD/gtd_70to95_0718dist.xlsx")
-gtd96to13 <- read_excel("H:/GTD/gtd_96to13_0718dist.xlsx")
-gtd14to17 <- read_excel("H:/GTD/gtd_14to17_0718dist.xlsx")
+gtd70to95 <- read_excel(paste0(path, "/gtd_70to95_0718dist.xlsx"))
+gtd96to13 <- read_excel(paste0(path, "/gtd_96to13_0718dist.xlsx"))
+gtd14to17 <- read_excel(paste0(path, "/gtd_14to17_0718dist.xlsx"))
 
 # Extract columns
 # Modify and Extract Columns for TerrorismData ----
@@ -101,7 +103,7 @@ unique(missing$Country)
 
 ## Join td and ISO Country Code dataframe
 td <- left_join(x = td, y = isoCodeModified, by = "Country")
-td<- as.numeric(fullGTD$Year)
+td$Year <- as.numeric(td$Year)
 
 # Create Estimates for missing locations ----
 td <- mutate(td, MissLocation = ifelse(is.na(Latitude) | is.na(Longitude), 1, 0))
@@ -111,8 +113,6 @@ missingLocations$City <- as.character(missingLocations$City)
 
 miss_by_country_year <- filter(as.data.frame(table(missingLocations$Country, missingLocations$Year)), Freq > 0)
 
-td_f <- read.csv("C:/Users/stella/Documents/GTD/Map/terrorismData_inter.csv")
-
 # Load centroid location for estimations
 centroids <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/Country_Centroids.csv")
 centroids <- centroids[, c(49,67:68)]
@@ -120,12 +120,16 @@ colnames(centroids) <- c("NumCode", "Center_Long", "Center_Lat")
 
 td$NumCode <- as.numeric(td$NumCode)
 # Check which countries are not mergining
-t <- anti_join(x=td, y=centroids, by="NumCode")
-unique(t$Country) # "Soviet Union"  "International"
+not_merge <- anti_join(x=td, y=centroids, by="NumCode")
+unique(not_merge$Country) # "Soviet Union"  "International"
 
 # Merging Center_Long, Center_Lat information to terrorism data
 td <- left_join(x=td, y=centroids, by="NumCode") 
-td$Latitude <- ifelse(td$MissLocation == 0, td$Latitude, td$Center_Lat)
-td$Longitude <- ifelse(td$MissLocation == 0, td$Latitude, td$Center_Long)
+for (i in 1:nrow(td)){
+  if (td[i,]$MissLocation == 1){
+    td[i,]$Latitude <- td[i,]$Center_Lat
+    td[i,]$Longitude <- td[i,]$Center_Long
+  }
+}
 
-write.csv(td, "C:/Users/stella/Documents/GTD/terrorismData.csv")
+write.csv(td, "terrorismData.csv")

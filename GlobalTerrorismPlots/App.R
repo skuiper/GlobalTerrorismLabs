@@ -13,7 +13,9 @@ print("Finished initializing")
 #--------------------------------------------------------------------------------------------------------------------#
 ui <- navbarPage("Global Terrorism Plots",
                  
-                 #scatterplot
+                 #==================
+                 #Scatter plot
+                 #==================
                  tabPanel(span("Scatterplot" , style = "color:#1369bf"), fluidPage(
                    titlePanel(htmlOutput("ScatterTitle")),
                    #div("Global Terrorism Scatterplot - ", style = "color:#1369bf", align = "center")),    
@@ -131,7 +133,9 @@ ui <- navbarPage("Global Terrorism Plots",
                    )
                  )),
                  
-                 #Bar Chart
+                 #==================
+                 # Bar chart
+                 #==================
                  tabPanel(span("Bar Chart", style = "color:#1369bf"), fluidPage(
                    titlePanel(div("Global Terrorism Bar Chart", style = "color:#1369bf", align = "center")),
                    fluidRow(
