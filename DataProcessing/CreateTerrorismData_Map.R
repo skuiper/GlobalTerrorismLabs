@@ -132,4 +132,13 @@ for (i in 1:nrow(td)){
   }
 }
 
-write.csv(td, "terrorismData.csv")
+
+# Create Region variable for Map
+td$MapRegion <- ifelse(td$Region == "Middle East & North Africa", "Middle East & North Africa",
+                       ifelse(td$Region == "North America", "North America",
+                              ifelse(td$Region == "South Asia", "South Asia",
+                                     ifelse(td$Region == "Sub-Saharan Africa", "Sub-Saharan Africa",
+                                            ifelse((td$Region == "Western Europe"|td$Region == "Eastern Europe"|td$Region == "Central Asia"), "Europe & Central Asia",
+                                                   ifelse((td$Region == "Central America & Caribbean"|td$Region == "South America"), "Latin America & Caribbean",
+                                                          "East Asia & Pacific"))))))
+write.csv(td, "C:/Users/stella/Documents/GTD/Map/terrorismData.csv")

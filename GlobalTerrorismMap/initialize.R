@@ -12,9 +12,13 @@ print("Load worldshapes")
 
 terrorismData <- read.csv("C:/Users/stella/Documents/GTD/Map/terrorismData.csv")
 
+terrorismData$Longitude <- jitter(terrorismData$Longitude, factor = 0.0000000001)
+terrorismData$Latitude <- jitter(as.numeric(terrorismData$Latitude),factor = 0.0000000001)
 options(scipen=999) # turn off scientific notification
 terrorismData$info <- paste0("<b>Event ID: </b>", terrorismData$"ID", "<br/><b>Date: </b>",terrorismData$"Month","/", terrorismData$"Day", "/", terrorismData$"Year",
-                            "<br/><b>Location: </b>", terrorismData$"City", ", ", terrorismData$"Country", "<br/><b>Group name: </b>", terrorismData$"GroupName",
+                            "<br/><b>Location: </b>", terrorismData$"City", ", ", terrorismData$"Country", 
+                            ifelse(terrorismData$"MissLocation" == 1, paste0("<br/> Location on the map is the centroid of ", terrorismData$"Country"), ""),
+                            "<br/><b>Group name: </b>", terrorismData$"GroupName",
                             "<br/><b>Target: </b>", terrorismData$"Target", "<br/><b>Attack type: </b>", terrorismData$"Attack",
                             "<br/><b>Weapon type: </b>", terrorismData$"Weapon", "<br/><b>Deaths: </b>", terrorismData$"nKill",
                             "<br/><b>Wounded: </b>", terrorismData$"nWound", 
