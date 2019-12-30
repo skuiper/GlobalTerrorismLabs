@@ -5,7 +5,7 @@ library(plyr)
 library(ggvis)
 library(scales)
 
-source('global.R')
+source('initialize.R')
 print("Finished initializing")
 
 #--------------------------------------------------------------------------------------------------------------------#

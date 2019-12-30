@@ -6,10 +6,11 @@ library(stringr)
 library(readr)
 library(dplyr)
 
+path = "C:/Users/stella/Documents/GTD"
 # Load Datasets ----
-gtd70to95 <- read_excel("H:/GTD/gtd_70to95_0718dist.xlsx")
-gtd96to13 <- read_excel("H:/GTD/gtd_96to13_0718dist.xlsx")
-gtd14to17 <- read_excel("H:/GTD/gtd_14to17_0718dist.xlsx")
+gtd70to95 <- read_excel(paste0(path,"/gtd_70to95_0718dist.xlsx"))
+gtd96to13 <- read_excel(paste0(path,"/gtd_96to13_0718dist.xlsx"))
+gtd14to17 <- read_excel(paste0(path,"/gtd_14to17_0718dist.xlsx"))
 
 # Modify and Extract Columns for Merged Version ----
 extractColumns <- function (df){
@@ -26,7 +27,6 @@ newgtd96 <-extractColumns(gtd96to13)
 newgtd14 <-extractColumns(gtd14to17)
 
 mergedGTD <- rbind.data.frame(newgtd70, newgtd96, newgtd14)
-write.csv(mergedGTD, "H:\\GTDdata\\mergeGTD.csv")
 
 # Add "NumCode" (ISO 3166-1) country code ----
 ## Create dataframe with country code retrieved from wikipedia
@@ -53,6 +53,7 @@ mergedGTD$Country[mergedGTD$Country == "Guadeloupe"] <- "France"
 mergedGTD$Country[mergedGTD$Country == "Martinique"] <- "France"
 mergedGTD$Country[mergedGTD$Country == "French Guiana"] <- "France"
 
+isoCodeModified <- isoCode
 isoCodeModified <- rbind.data.frame(isoCodeModified, c(704, "South Vietnam"))
 isoCodeModified <- rbind.data.frame(isoCodeModified, c(276, "West Germany (FRG)"))
 isoCodeModified$Country[isoCodeModified$Country == "United States of America"] <- "United States"
@@ -98,14 +99,14 @@ fullGTD$Year <- as.numeric(fullGTD$Year)
 # Add "NumIncidents" ----
 ### The number of incidents in the same country and year as the particular observation
 countIncidents <- as.data.frame(table(fullGTD$Country, fullGTD$Year))
-colnames(countIncidents) <- c("Country", "Year", "numIncidents")
+colnames(countIncidents) <- c("Country", "Year", "NumIncidents")
 countIncidents$Country <- as.character(countIncidents$Country)
 countIncidents$Year <- as.numeric(as.character(countIncidents$Year))
 fullGTD$Country <- as.character(fullGTD$Country)
-fullGTD <- full_join(x = fullGTD, y = countIncidents, c("Country", "Year"))
+fullGTD <- left_join(x = fullGTD, y = countIncidents, c("Country", "Year"))
 
 # Add "Religion" ----
-religion <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/ReligionPercentage.csv")
+religion <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/ReligionPercentage.csv")
 religion <- religion[,c(2,12)]
 religion$Country <- as.character(religion$Country)
 
@@ -127,27 +128,16 @@ religion$Country[religion$Country == "Saint Kitts and Nevis"] <- "St. Kitts and 
 religion$Country[religion$Country == "Saint Lucia"] <- "St. Lucia"
 religion$Country[religion$Country == "Vanuatu"] <- "New Hebrides"
 
-fullGTD <- full_join(x = fullGTD, y = religion, "Country")
-fullGTDfinal <- filter(fullGTD, !is.na(ID)) # delete rows without id created when joining num incidents
+fullGTD <- left_join(x = fullGTD, y = religion, "Country")
+
 ## Change Primary Religion manually
-fullGTDfinal$Primary[fullGTDfinal$Country == "West Germany (FRG)"] <- fullGTDfinal$Primary[fullGTDfinal$Country == "Germany"][1]
-fullGTDfinal$Primary[fullGTDfinal$Country == "South Vietnam"] <- fullGTDfinal$Primary[fullGTDfinal$Country == "Vietnam"][1]
-
-write.csv(fullGTDfinal, "H:/GTDdata/GTDfinal.csv", row.names = FALSE)
-
+fullGTD$Primary[fullGTD$Country == "West Germany (FRG)"] <- fullGTD$Primary[fullGTD$Country == "Germany"][1]
+fullGTD$Primary[fullGTD$Country == "South Vietnam"] <- fullGTD$Primary[fullGTD$Country == "Vietnam"][1]
 # Missing Primary Religion 
 # Ivory Coast
 
-# Checking NumIncidents from previous data
-previous <- read.csv("//storage/GROUPS/DASIL/Kuiper/GTD/GlobalTerrorismPlots/fullGTD.csv")
-subset <- dplyr::filter(fullGTDfinal, fullGTDfinal$Year <= 2014)
-dfsubset <- unique(subset[c(3,2,12)])
-prevsubset <- unique(previous[c(3,2,12)])
-prevsubset$Country <- as.character(prevsubset$Country)
+colnames(fullGTD) <- c(colnames(fullGTD)[-14], "Religion")
 
-# Check the country names change 
-anti_join(dfsubset, prevsubset, by = "Country") # one international incidents included
-unique(anti_join(prevsubset, dfsubset, by = "Country")$Country) # 8 countries name changed ex "Great Britain"
+write.csv(fullGTD, paste0(path,"/fullGTD.csv"), row.names = FALSE)
 
-compare <- inner_join(dfsubset, prevsubset, by= c("Country", "Year"))
-colnames(compare) <- c("Country", "Year", "num_curr", "num_prev")
+

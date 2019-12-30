@@ -5,19 +5,20 @@ library(rvest)
 library(stringr)
 library(readr)
 
-# Load datasets
-wb1 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/WorldBank/GDPUnemploymentWorldBank.csv")
+# Load datasets----
+wb1 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/GDPUnemploymentWorldBank.csv")
 # GDP per capita, PPP | Unemployment, female | Electric power consumption (kWh per capita)
 
-wb2 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/WorldBank/PopulationWorldBank.csv")
+wb2 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/PopulationWorldBank.csv")
 # Population density | Population, total
 
-wb3 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/WorldBank/FertilityWorldBank.csv")
+wb3 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/FertilityWorldBank.csv")
 # Fertility rate, total | Mortality rate
 
-wb4 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/WorldBank/LaborForceRateWorldBank.csv")
+wb4 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/LaborForceRateWorldBank.csv")
 # Labor force participation
 
+# Select Necessary Information ----
 # Change the column names
 colnames(wb1) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
 colnames(wb2) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
@@ -33,7 +34,7 @@ ChildrenPerWoman <- filter(wb3, Series.Code =="SP.DYN.TFRT.IN")
 ChildMortalityRate <- filter(wb3, Series.Code =="SH.DYN.MORT")
 LabourRate <- filter(wb4, Series.Code =="SL.TLF.ACTI.ZS")
 
-# Gather data
+# Gather data ----
 year_to_variable <- function (df){
   df <- gather(data=df, key = year, value = var,
                "1970", "1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
@@ -82,10 +83,11 @@ colnames(isoCode) <- c("ISOCode", "NumCode")
 WorldBank <- left_join(x=WorldBank, y = isoCode, by = "ISOCode")
 
 # Resolve conflict with GTD data country name ----
-GTD <- read.csv("H:/GTDdata/GTDfinal.csv")
+path = "C:/Users/stella/Documents/GTD"
+GTD <- read.csv(paste0(path,"/fullGTD.csv"))
 GTD$NumCode <- as.numeric(GTD$NumCode)
 WorldBank$NumCode <- as.numeric(WorldBank$NumCode)
 diff <- anti_join(x=GTD, y = WorldBank, by ="NumCode")
-diff2 <- anti_join(x=WorldBank, y = GTD, by ="NumCode")
+# Taiwan | Western Sahara | Vatican City  | Falkland Islands | Wallis and Futuna
 
 write.csv(WorldBank, "WorldBankData.csv")
