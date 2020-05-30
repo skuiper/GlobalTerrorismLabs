@@ -7,10 +7,10 @@ library(sf)
 library(maps)
 library(dplyr)
 
-worldshapes <-  sf::st_read('~/GTD/worldshapes/worldshapes.shp')
+worldshapes <-  sf::st_read('worldshapes/worldshapes.shp')
 print("Load worldshapes")
 
-terrorismData <- read.csv("C:/Users/stella/Documents/GTD/Map/terrorismData.csv")
+terrorismData <- read.csv("terrorismData.csv")
 
 terrorismData$Longitude <- jitter(terrorismData$Longitude, factor = 0.0000000001)
 terrorismData$Latitude <- jitter(as.numeric(terrorismData$Latitude),factor = 0.0000000001)
