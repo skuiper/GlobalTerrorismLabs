@@ -25,7 +25,7 @@ sidebar <- dashboardSidebar(
   sliderInput("year",
               "Year",
               min = 1970,
-              max = 2017,
+              max = 2019,
               value = 1970,
               step = 1,
               sep = "",
@@ -103,8 +103,6 @@ server <- function(input, output) {
     
     # Checks if there are any events for that year and breaks if there aren't any
     if(nrow(regionEvents) == 0) return()
-    
-    
     
     #   Renders markers if there are
     leafletProxy('Map') %>% clearMarkers()

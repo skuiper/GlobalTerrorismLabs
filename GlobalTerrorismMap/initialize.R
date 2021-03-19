@@ -7,10 +7,14 @@ library(sf)
 library(maps)
 library(dplyr)
 
-worldshapes <-  sf::st_read('worldshapes/worldshapes.shp')
+
+data_path = "Insert Data path"
+
+worldshapes <-  sf::st_read(paste0(data_path, "worldshapes/worldshapes.shp"))
 print("Load worldshapes")
 
-terrorismData <- read.csv("terrorismData.csv")
+terrorismData <- read.csv(paste0(data_path, "terrorismData.csv"))
+
 
 terrorismData$Longitude <- jitter(terrorismData$Longitude, factor = 0.0000000001)
 terrorismData$Latitude <- jitter(as.numeric(terrorismData$Latitude),factor = 0.0000000001)

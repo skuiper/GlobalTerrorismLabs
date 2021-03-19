@@ -1,4 +1,5 @@
 # Building TerrorismData for GlobalTerrorism Map
+# (1970 - 2019)
 
 # Loading Library ----
 library(dplyr)
@@ -7,12 +8,9 @@ library(rvest)
 library(stringr)
 library(readr)
 
-path = "FOLDER PATH TO RAW DATA"
+raw_path = "Insert raw data directory"
 
-# Load Datasets ----
-gtd70to95 <- read_excel(paste0(path, "/gtd_70to95_0718dist.xlsx"))
-gtd96to13 <- read_excel(paste0(path, "/gtd_96to13_0718dist.xlsx"))
-gtd14to17 <- read_excel(paste0(path, "/gtd_14to17_0718dist.xlsx"))
+gtd <- read_excel(paste0(path, "/globalterrorismdb_0221dist.xlsx"))
 
 # Extract columns
 # Modify and Extract Columns for TerrorismData ----
@@ -27,14 +25,9 @@ extractColumns <- function (df){
   return (temp)
 }
 
-## Merge datasets and save into .csv file
-newgtd70 <- extractColumns(gtd70to95)
-newgtd96 <-extractColumns(gtd96to13)
-newgtd14 <-extractColumns(gtd14to17)
+td <- extractColumns(gtd)
 
-td <- rbind.data.frame(newgtd70, newgtd96, newgtd14)
-
-# Create Severity column
+# Create Severity column ----
 td["Severity"] <- 2*log(4*td["nKill"] + td["nWound"]+1)
 
 # Add "NumCode" (ISO 3166-1) country code ----
@@ -97,13 +90,15 @@ isoCodeModified$Country[isoCodeModified$Country == "Moldova, Republic of"] <- "M
 isoCodeModified$Country[isoCodeModified$Country == "Côte d'Ivoire"] <- "Ivory Coast"
 isoCodeModified$Country[isoCodeModified$Country == "Vanuatu"] <- "New Hebrides"
 
-#### get list of missing country codes -> Soviet Union and International
+
+#### get list of missing country codes -> Soviet Union and International ----
 missing <- anti_join(x= td, y = isoCodeModified, by = "Country")
 unique(missing$Country)
 
-## Join td and ISO Country Code dataframe
+## Join td and ISO Country Code dataframe ----
 td <- left_join(x = td, y = isoCodeModified, by = "Country")
 td$Year <- as.numeric(td$Year)
+
 
 # Create Estimates for missing locations ----
 td <- mutate(td, MissLocation = ifelse(is.na(Latitude) | is.na(Longitude), 1, 0))
@@ -113,7 +108,7 @@ missingLocations$City <- as.character(missingLocations$City)
 
 miss_by_country_year <- filter(as.data.frame(table(missingLocations$Country, missingLocations$Year)), Freq > 0)
 
-# Load centroid location for estimations
+# Load centroid location for estimations ----
 centroids <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/Country_Centroids.csv")
 centroids <- centroids[, c(49,67:68)]
 colnames(centroids) <- c("NumCode", "Center_Long", "Center_Lat")
@@ -123,7 +118,7 @@ td$NumCode <- as.numeric(td$NumCode)
 not_merge <- anti_join(x=td, y=centroids, by="NumCode")
 unique(not_merge$Country) # "Soviet Union"  "International"
 
-# Merging Center_Long, Center_Lat information to terrorism data
+# Merging Center_Long, Center_Lat information to terrorism data ----
 td <- left_join(x=td, y=centroids, by="NumCode") 
 for (i in 1:nrow(td)){
   if (td[i,]$MissLocation == 1){
@@ -131,7 +126,6 @@ for (i in 1:nrow(td)){
     td[i,]$Longitude <- td[i,]$Center_Long
   }
 }
-
 
 # Create Region variable for Map
 td$MapRegion <- ifelse(td$Region == "Middle East & North Africa", "Middle East & North Africa",
@@ -141,4 +135,6 @@ td$MapRegion <- ifelse(td$Region == "Middle East & North Africa", "Middle East &
                                             ifelse((td$Region == "Western Europe"|td$Region == "Eastern Europe"|td$Region == "Central Asia"), "Europe & Central Asia",
                                                    ifelse((td$Region == "Central America & Caribbean"|td$Region == "South America"), "Latin America & Caribbean",
                                                           "East Asia & Pacific"))))))
-write.csv(td, "C:/Users/stella/Documents/GTD/Map/terrorismData.csv")
+
+data_path = "Insert data path"
+write.csv(td, file.path(data_path,"terrorismData.csv"))
