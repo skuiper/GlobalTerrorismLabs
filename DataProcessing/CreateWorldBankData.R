@@ -6,33 +6,19 @@ library(stringr)
 library(readr)
 
 # Load datasets----
-wb1 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/GDPUnemploymentWorldBank.csv")
-# GDP per capita, PPP | Unemployment, female | Electric power consumption (kWh per capita)
-
-wb2 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/PopulationWorldBank.csv")
-# Population density | Population, total
-
-wb3 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/FertilityWorldBank.csv")
-# Fertility rate, total | Mortality rate
-
-wb4 <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/LaborForceRateWorldBank.csv")
-# Labor force participation
-
-# Select Necessary Information ----
+wb <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WBRawData.csv")
+wb2 <- unique(wb)
 # Change the column names
-colnames(wb1) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
-colnames(wb2) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
-colnames(wb3) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
-colnames(wb4) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
+colnames(wb) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
 
-GDPPerCapita <- filter(wb1, Series.Code =="NY.GDP.PCAP.PP.KD")
-FemaleUnemploymentRate <-  filter(wb1, Series.Code =="SL.UEM.TOTL.FE.NE.ZS")
-ElectricityPerCapita <-  filter(wb1, Series.Code =="EG.USE.ELEC.KH.PC")
-Population <- filter(wb2, Series.Code =="SP.POP.TOTL")
-PopulationDensity <- filter(wb2, Series.Code =="EN.POP.DNST")
-ChildrenPerWoman <- filter(wb3, Series.Code =="SP.DYN.TFRT.IN")
-ChildMortalityRate <- filter(wb3, Series.Code =="SH.DYN.MORT")
-LabourRate <- filter(wb4, Series.Code =="SL.TLF.ACTI.ZS")
+GDPPerCapita <- dplyr::filter(wb, Series.Code =="NY.GDP.PCAP.PP.KD")
+FemaleUnemploymentRate <-  filter(wb, Series.Code =="SL.UEM.TOTL.FE.NE.ZS")
+ElectricityPerCapita <-  filter(wb, Series.Code =="EG.USE.ELEC.KH.PC")
+Population <- filter(wb, Series.Code =="SP.POP.TOTL")
+PopulationDensity <- filter(wb, Series.Code =="EN.POP.DNST")
+ChildrenPerWoman <- filter(wb, Series.Code =="SP.DYN.TFRT.IN")
+ChildMortalityRate <- filter(wb, Series.Code =="SH.DYN.MORT")
+LabourRate <- filter(wb, Series.Code =="SL.TLF.ACTI.ZS")
 
 # Gather data ----
 year_to_variable <- function (df){
