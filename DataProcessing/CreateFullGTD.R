@@ -1,4 +1,3 @@
-# Merge GTD data
 library ("readxl")
 ### web scraping library
 library(rvest)
@@ -6,11 +5,9 @@ library(stringr)
 library(readr)
 library(dplyr)
 
-path = "C:/Users/stella/Documents/GTD"
-# Load Datasets ----
-gtd70to95 <- read_excel(paste0(path,"/gtd_70to95_0718dist.xlsx"))
-gtd96to13 <- read_excel(paste0(path,"/gtd_96to13_0718dist.xlsx"))
-gtd14to17 <- read_excel(paste0(path,"/gtd_14to17_0718dist.xlsx"))
+raw_path = "Insert raw data directory"
+
+gtd <- read_excel(paste0(raw_path, "globalterrorismdb_0221dist.xlsx"))
 
 # Modify and Extract Columns for Merged Version ----
 extractColumns <- function (df){
@@ -21,12 +18,7 @@ extractColumns <- function (df){
   return (temp)
 }
 
-## Merge datasets and save into .csv file
-newgtd70 <- extractColumns(gtd70to95)
-newgtd96 <-extractColumns(gtd96to13)
-newgtd14 <-extractColumns(gtd14to17)
-
-mergedGTD <- rbind.data.frame(newgtd70, newgtd96, newgtd14)
+gtd_df <- extractColumns(gtd)
 
 # Add "NumCode" (ISO 3166-1) country code ----
 ## Create dataframe with country code retrieved from wikipedia
@@ -38,20 +30,20 @@ isoCode$Code <- as.numeric(isoCode$Code)
 colnames(isoCode) <- c("NumCode", "Country")
 row.names(isoCode) <- NULL
 
-mergedGTD$Country <- as.character(mergedGTD$Country)
+gtd_df$Country <- as.character(gtd_df$Country)
 ## Correcting Country names ----
-mergedGTD$Country[mergedGTD$Country == "East Germany (GDR)"] <- "Germany"
-mergedGTD$Country[mergedGTD$Country == "Czechoslovakia"] <- "Czech Republic"
-mergedGTD$Country[mergedGTD$Country == "Serbia-Montenegro" |mergedGTD$Country == "Kosovo"|mergedGTD$Country == "Yugoslavia"] <- "Serbia"
-mergedGTD$Country[mergedGTD$Country == "North Yemen" | mergedGTD$Country == "South Yemen"] <- "Yemen"
-mergedGTD$Country[mergedGTD$Country == "Democratic Republic of the Congo" | mergedGTD$Country == "Zaire"] <- "Congo (Kinshasa)"
-mergedGTD$Country[mergedGTD$Country == "People's Republic of the Congo" | mergedGTD$Country == "Republic of the Congo"] <- "Congo (Brazzaville)"
-mergedGTD$Country[mergedGTD$Country == "East Timor"] <- "Timor-Leste"
-mergedGTD$Country[mergedGTD$Country == "Vanuatu"] <- "New Hebrides"
-mergedGTD$Country[mergedGTD$Country == "Zimbabwe"] <- "Rhodesia"
-mergedGTD$Country[mergedGTD$Country == "Guadeloupe"] <- "France"
-mergedGTD$Country[mergedGTD$Country == "Martinique"] <- "France"
-mergedGTD$Country[mergedGTD$Country == "French Guiana"] <- "France"
+gtd_df$Country[gtd_df$Country == "East Germany (GDR)"] <- "Germany"
+gtd_df$Country[gtd_df$Country == "Czechoslovakia"] <- "Czech Republic"
+gtd_df$Country[gtd_df$Country == "Serbia-Montenegro" |gtd_df$Country == "Kosovo"|gtd_df$Country == "Yugoslavia"] <- "Serbia"
+gtd_df$Country[gtd_df$Country == "North Yemen" | gtd_df$Country == "South Yemen"] <- "Yemen"
+gtd_df$Country[gtd_df$Country == "Democratic Republic of the Congo" | gtd_df$Country == "Zaire"] <- "Congo (Kinshasa)"
+gtd_df$Country[gtd_df$Country == "People's Republic of the Congo" | gtd_df$Country == "Republic of the Congo"] <- "Congo (Brazzaville)"
+gtd_df$Country[gtd_df$Country == "East Timor"] <- "Timor-Leste"
+gtd_df$Country[gtd_df$Country == "Vanuatu"] <- "New Hebrides"
+gtd_df$Country[gtd_df$Country == "Zimbabwe"] <- "Rhodesia"
+gtd_df$Country[gtd_df$Country == "Guadeloupe"] <- "France"
+gtd_df$Country[gtd_df$Country == "Martinique"] <- "France"
+gtd_df$Country[gtd_df$Country == "French Guiana"] <- "France"
 
 isoCodeModified <- isoCode
 isoCodeModified <- rbind.data.frame(isoCodeModified, c(704, "South Vietnam"))
@@ -89,11 +81,11 @@ isoCodeModified$Country[isoCodeModified$Country == "Côte d'Ivoire"] <- "Ivory C
 isoCodeModified$Country[isoCodeModified$Country == "Vanuatu"] <- "New Hebrides"
 
 #### get list of missing country codes -> Soviet Union and International
-missing <- anti_join(x= mergedGTD, y = isoCodeModified, by = "Country")
+missing <- anti_join(x= gtd_df, y = isoCodeModified, by = "Country")
 unique(missing$Country)
 
-## Join mergedGTD and ISO Country Code dataframe
-fullGTD <- left_join(x = mergedGTD, y = isoCodeModified, by = "Country")
+## Join gtd_df and ISO Country Code dataframe
+fullGTD <- dplyr::left_join(x = gtd_df, y = isoCodeModified %>% select(NumCode, Country), by = "Country")
 fullGTD$Year <- as.numeric(fullGTD$Year)
 
 # Add "NumIncidents" ----
@@ -138,6 +130,7 @@ fullGTD$Primary[fullGTD$Country == "South Vietnam"] <- fullGTD$Primary[fullGTD$C
 
 colnames(fullGTD) <- c(colnames(fullGTD)[-14], "Religion")
 
-write.csv(fullGTD, paste0(path,"/fullGTD.csv"), row.names = FALSE)
+data_path = "Insert path to data directory"
+write.csv(fullGTD, paste0(data_path,"/fullGTD.csv"), row.names = FALSE)
 
 

@@ -6,46 +6,40 @@ library(stringr)
 library(readr)
 
 # Load datasets----
-wb <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WBRawData.csv")
-wb2 <- unique(wb)
-# Change the column names
-colnames(wb) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2017) 
-
-GDPPerCapita <- dplyr::filter(wb, Series.Code =="NY.GDP.PCAP.PP.KD")
-FemaleUnemploymentRate <-  filter(wb, Series.Code =="SL.UEM.TOTL.FE.NE.ZS")
-ElectricityPerCapita <-  filter(wb, Series.Code =="EG.USE.ELEC.KH.PC")
-Population <- filter(wb, Series.Code =="SP.POP.TOTL")
-PopulationDensity <- filter(wb, Series.Code =="EN.POP.DNST")
-ChildrenPerWoman <- filter(wb, Series.Code =="SP.DYN.TFRT.IN")
-ChildMortalityRate <- filter(wb, Series.Code =="SH.DYN.MORT")
-LabourRate <- filter(wb, Series.Code =="SL.TLF.ACTI.ZS")
+GDPPerCapita <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_GDP.csv")
+FemaleUnemploymentRate <-  read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_FemaleUnemployment.csv")
+ElectricityPerCapita <-  read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Electricity.csv")
+Population <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Pop.csv")
+PopulationDensity <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_PopDen.csv")
+ChildrenPerWoman <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Fertility.csv")
+ChildMortalityRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Mortality.csv")
+LabourRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_LaborForce.csv")
 
 # Gather data ----
-year_to_variable <- function (df){
+year_to_variable <- function (df, var_name){
+  # Change the column names
+  colnames(df) <- c("Series.Name", "Series.Code", "Country.Name", "Country.Code", 1970:2019) 
+  
   df <- gather(data=df, key = year, value = var,
-               "1970", "1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
-               "1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990", "1991", "1992",
-               "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002", "2003", "2004",
-               "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
-  return (df[,c(-1,-2)])
+               "1970", "1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", 
+               "1980", "1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", 
+               "1990", "1991", "1992", "1993", "1994", "1995", "1996", "1997", "1998", "1999", 
+               "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", 
+               "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019")
+  df <- df[,c(-1,-2)]
+  colnames(df) <- c("Country", "ISOCode", "Year", var_name) 
+  return (df)
 }
 
-GDPPerCapita <- year_to_variable(GDPPerCapita)
-colnames(GDPPerCapita) <- c("Country", "ISOCode", "Year", "GDPPerCapita")
-FemaleUnemploymentRate <- year_to_variable(FemaleUnemploymentRate)
-colnames(FemaleUnemploymentRate) <- c("Country", "ISOCode","Year", "FemaleUnemploymentRate")
-ElectricityPerCapita <- year_to_variable(ElectricityPerCapita)
-colnames(ElectricityPerCapita) <- c("Country", "ISOCode", "Year", "ElectricityPerCapita")
-Population <- year_to_variable(Population)
-colnames(Population) <- c("Country", "ISOCode", "Year", "Population")
-PopulationDensity <- year_to_variable(PopulationDensity)
-colnames(PopulationDensity) <- c("Country", "ISOCode", "Year",  "PopulationDensity")
-ChildrenPerWoman <- year_to_variable(ChildrenPerWoman)
-colnames(ChildrenPerWoman) <- c("Country", "ISOCode", "Year",  "ChildrenPerWoman")
-ChildMortalityRate <- year_to_variable(ChildMortalityRate)
-colnames(ChildMortalityRate) <- c("Country", "ISOCode", "Year",  "ChildMortalityRate")
-LabourRate <- year_to_variable(LabourRate)
-colnames(LabourRate) <- c("Country", "ISOCode", "Year", "LabourRate")
+GDPPerCapita <- year_to_variable(GDPPerCapita, "GDPPerCapita")
+FemaleUnemploymentRate <- year_to_variable(FemaleUnemploymentRate, "FemaleUnemploymentRate" )
+ElectricityPerCapita <- year_to_variable(ElectricityPerCapita, "ElectricityPerCapita")
+Population <- year_to_variable(Population, "Population")
+PopulationDensity <- year_to_variable(PopulationDensity,  "PopulationDensity")
+ChildrenPerWoman <- year_to_variable(ChildrenPerWoman, "ChildrenPerWoman")
+ChildMortalityRate <- year_to_variable(ChildMortalityRate,"ChildMortalityRate")
+LabourRate <- year_to_variable(LabourRate, "LabourRate")
+
 
 # Change population variable to Population in millions
 Population$PopulationInMillions <- as.numeric(Population$Population) / 1000000
@@ -69,11 +63,16 @@ colnames(isoCode) <- c("ISOCode", "NumCode")
 WorldBank <- left_join(x=WorldBank, y = isoCode, by = "ISOCode")
 
 # Resolve conflict with GTD data country name ----
-path = "C:/Users/stella/Documents/GTD"
-GTD <- read.csv(paste0(path,"/fullGTD.csv"))
+
+gtd_path = "Insert path to data directory"
+GTD <- read.csv(paste0(gtd_path,"/fullGTD.csv"))
 GTD$NumCode <- as.numeric(GTD$NumCode)
 WorldBank$NumCode <- as.numeric(WorldBank$NumCode)
 diff <- anti_join(x=GTD, y = WorldBank, by ="NumCode")
+# unique(diff$Country)
 # Taiwan | Western Sahara | Vatican City  | Falkland Islands | Wallis and Futuna
 
 write.csv(WorldBank, "WorldBankData.csv")
+
+data_path = "Insert path to data directory"
+write.csv(WorldBank, paste0(data_path,"/WorldBankData.csv"), row.names = FALSE)

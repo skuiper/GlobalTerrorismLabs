@@ -54,8 +54,8 @@ ui <- navbarPage("Global Terrorism Plots",
                                   column(6, checkboxInput("ScatterSuccess", "Success Only"))),
                          
                          #Sliders for year and minimum incidents
-                         sliderInput("ScatterYear", "Year of Incidents", 1970, 2019, 
-                                     value = c(2000, 2019), sep=""),
+                         sliderInput("ScatterYear", "Year of Incidents", 1970, 2013, 
+                                     value = c(2000, 2013), sep=""),
                          
                          HTML("Variable Descriptions for the app: <a href='http://web.grinnell.edu/individuals/kuipers/stat2labs/Handouts/GlobalTerrorism/GTDVariableDescription.pdf'>Variable Descriptions</a>")
                          
@@ -121,7 +121,7 @@ ui <- navbarPage("Global Terrorism Plots",
                        selectInput("RiverFacets", "Facet By", 
                                    choices= c("None"="none", facetOptions)),
                        sliderInput("RiverYears", "Year of Incidents",
-                                   1970, 2019, value = c(2000, 2019), sep="",
+                                   1970, 2014, value = c(2000, 2014), sep="",
                                    animate=TRUE),
                        HTML("Variable Descriptions for the app: <a href='http://web.grinnell.edu/individuals/kuipers/stat2labs/Handouts/GlobalTerrorism/GTDVariableDescription.pdf'>Variable Descriptions</a>")
                        

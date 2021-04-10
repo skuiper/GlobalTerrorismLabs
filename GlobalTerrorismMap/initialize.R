@@ -8,9 +8,10 @@ library(maps)
 library(dplyr)
 
 
-data_path = "Insert Data path"
+data_path = "C:/Users/stella/Documents/GitHub/"
+worldshape_path = "/Users/stella/Documents/GitHub/GlobalTerrorismLabs/GlobalTerrorismMap/"
 
-worldshapes <-  sf::st_read(paste0(data_path, "worldshapes/worldshapes.shp"))
+worldshapes <-  sf::st_read(paste0(worldshape_path, "worldshapes/worldshapes.shp"))
 print("Load worldshapes")
 
 terrorismData <- read.csv(paste0(data_path, "terrorismData.csv"))
