@@ -4,7 +4,7 @@ library(leaflet)
 library(maptools)
 library(magrittr)
 
-source('initialize.R')
+source('~/graphics2/GlobalTerrorismMap/initialize.R')
 print("Finished initializing")
 
 #--------------------------------------------------------------------------------------------------------------------#
@@ -30,8 +30,7 @@ sidebar <- dashboardSidebar(
               step = 1,
               sep = "",
               animate = animationOptions(interval = 1000)),
-  htmlOutput('estimatesText'),
-  checkboxInput("estimates",  "Include estimated locations", value = FALSE),
+  checkboxInput("prediction", "Include incidents with predicted locations", value = FALSE),
   htmlOutput('sidebarText')
 )
 
@@ -97,9 +96,26 @@ server <- function(input, output) {
       mapshapes <- worldshapes[worldshapes$region_wb == regionName,]
     }
     
-    if (input$estimates == FALSE){
+    
+    if(nrow(regionEvents) != 0) {
+    regionEvents$info <- paste0("<b>Event ID:</b>", regionEvents$"ID", "<br/><b>Date:</b>",regionEvents$"Month","/", regionEvents$"Day", "/", regionEvents$"Year",
+                                "<br/><b>Location:</b>", regionEvents$"City", ",", regionEvents$"Country", "<br/><b>Group name:</b>", regionEvents$"GroupName",
+                                "<br/><b>Target:</b>", regionEvents$"Target", "<br/><b>Attack type:</b>", regionEvents$"Attack",
+                                "<br/><b>Weapon type:</b>", regionEvents$"Weapon", "<br/><b>Deaths:</b>", regionEvents$"nKill",
+                                "<br/><b>Wounded:</b>", regionEvents$"nWound", 
+                                "</br><a href='http://www.start.umd.edu/gtd/search/IncidentSummary.aspx?gtdid=", regionEvents$ID, "'>Database entry for this event.</a>")
+    }else{
+      leafletProxy('Map') %>% clearMarkers()
+      return()
+    }
+    
+    
+    
+    
+    if (input$prediction == FALSE){
       regionEvents <- filter(regionEvents, MissLocation == 0)
     }
+    
     
     # Checks if there are any events for that year and breaks if there aren't any
     if(nrow(regionEvents) == 0) return()
@@ -113,8 +129,8 @@ server <- function(input, output) {
       radius = regionEvents$Severity,
       popup = regionEvents$info
     )
-    
   }
+  
   
   updateRegion <- function(){
     if (input$region == "World"){
@@ -143,6 +159,7 @@ server <- function(input, output) {
   output$Map <- renderLeaflet({
     leaflet()  %>%
       addProviderTiles("CartoDB.Positron")
+    #addTiles('http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}.png')
   })
   
   # Update map when new region is selected
@@ -156,24 +173,25 @@ server <- function(input, output) {
     updateMarkers()
   })
   
-  # Update map when estimates is selected
-  observeEvent({input$estimates}, {
+  # Update map when prediction is selected
+  observeEvent({input$prediction}, {
     updateMarkers()
   })
   
   #----------------------------------------------------------------------------------------------------------------#
   #                                             DEFINE Info Box                                                    #
   #----------------------------------------------------------------------------------------------------------------#
-  output$estimatesText <- renderText({"<div style='padding:1em'> <b>Note:</b> The locations of some incidents had to be estimated 
-  with the centroid of the country. <a href='https://worldmap.harvard.edu/data/geonode:country_centroids_az8'>Harvard Worldmap Country Centroids</a>.
-  To include the estimated locations, click the box below. </div>
-    "})
   # Text to be displayed in the side bar
   output$sidebarText <- renderText({"
           <div style='padding:1em'>
                Click on an incident for more details, or
                search the <a href='http://www.start.umd.edu/gtd/search/BrowseBy.aspx'>
                Global Terrorism database</a>.
+          </div>
+          <div style='padding:1em'>
+               <b>Note:</b> The locations of some incidents had to be estimated
+               with the <a href='http://www.geonames.org/'>GeoNames database</a>.
+               As a result, a few markers may appear in weird places!
           </div>
           <div style='padding:1em'>
                More resources for instructors: <a href='http://web.grinnell.edu/individuals/kuipers/stat2labs/GlobalTerrorism.html'>
