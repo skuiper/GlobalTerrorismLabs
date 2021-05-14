@@ -2,8 +2,11 @@ library(dplyr)
 library(readr)
 
 # Load Dataset
-WBdata <- read.csv("WorldBankdata.csv")
-GTDdata <- read.csv("C:/Users/stella/Documents/GitHub/GlobalTerrorismLabs/GlobalTerrorismPlots/fullGTD.csv")
+data_path = "C:/Users/stella/Documents/GitHub/GlobalTerrorismLabs/GlobalTerrorismPlots/"
+WBdata <- read.csv(paste0(data_path, "WorldBankdata.csv")) 
+GTDdata <- read.csv(paste0(data_path, "fullGTD.csv"), 
+                    colClasses=c("Success"="character"))
+
 GTDbyCountryYear <- GTDdata %>% group_by(Year, Country) %>%
   dplyr::summarize(NumIncidents= n(),
                    NumFatalities = sum(Fatalities, na.rm=TRUE),

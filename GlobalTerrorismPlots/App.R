@@ -26,7 +26,7 @@ ui <- navbarPage("Global Terrorism Plots",
                        tabPanel("Axes", wellPanel( #RENAME PANEL TAB
                          
                          #X-axis (GM variables, warnings, log option)
-                         fluidRow(column(9, selectInput("ScatterXaxis", "X-axis Variable", choices = GMOptions)),
+                         fluidRow(column(9, selectInput("ScatterXaxis", "X-axis Variable", choices = WBOptions)),
                                   column(3, br(), checkboxInput("Scatterlogx", "Log"))),
                          conditionalPanel(condition="input.ScatterXaxis=='Labour Rate'",
                                           p("Only has data for 1980-2007")),
@@ -297,8 +297,8 @@ server <- function(input, output, clientData, session) {
     
     #updateNumericInput(session, "ScatterNumPoints", value=length(GTDbyCY$Year))
     
-    # merge GTD and GM data together to get rid of extra data in GMdata
-    merge(GTDbyCY, GMdata, by=c("Year", "NumCode"))
+    # merge GTD and GM data together to get rid of extra data in WBdata
+    merge(GTDbyCY, WBdata, by=c("Year", "NumCode"))
   })
   
   prepareCurrentData <- reactive({
@@ -517,7 +517,7 @@ server <- function(input, output, clientData, session) {
   
   output$RiverPlot <- renderPlot({
     
-    #Variable to join GTDOverTime and VariablesByYear (3 dataframes with
+    # Variable to join GTDOverTime and VariablesByYear (3 dataframes with
     # total number of incidents/fatalities/wounded by year and facet, 
     # if applicable)
     if(input$RiverFacets != "none"){
@@ -529,7 +529,7 @@ server <- function(input, output, clientData, session) {
     #Variables is used in ddply to extract absolute number of incidents, etc.
     Variables = c(joinTotalBy, input$RiverColors)
     
-    #GTDOverTime is a dataframe with rows as each possible combination of year, 
+    # GTDOverTime is a dataframe with rows as each possible combination of year, 
     # color variable, facet variable (if applicable), and the corresponding 
     # count of the appropriate variable (incidents, fatalities, wounded) 
     # "absolute" references the column which has the absolute counts of 
@@ -596,8 +596,7 @@ server <- function(input, output, clientData, session) {
     RiverPlot <- RiverPlot + 
       theme(legend.position="right", strip.text=element_text(size=18),
             axis.title=element_text(size=18)) + 
-      ylab(input$RiverYaxis) +
-      scale_fill_manual(values=customColors)
+      ylab(input$RiverYaxis)
     
     #   print(sum(is.na(GTDOverTime)))
     
