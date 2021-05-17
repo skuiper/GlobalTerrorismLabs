@@ -444,7 +444,7 @@ server <- function(input, output, clientData, session) {
   #ggplot scatterplot
   output$ggplot1 <- renderPlot({   
     currentData <- prepareCurrentData()  
-    
+
     #Preparing titles for axes
     XaxisTitle = input$ScatterXaxis
     if(input$Scatterlogx) XaxisTitle <- paste("Log of", XaxisTitle)

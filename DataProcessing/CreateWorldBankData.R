@@ -10,7 +10,7 @@ GDPPerCapita <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerror
 FemaleUnemploymentRate <-  read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_FemaleUnemployment.csv")
 ElectricityPerCapita <-  read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Electricity.csv")
 Population <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Pop.csv")
-PopulationDensity <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_PopDen.csv")
+#PopulationDensity <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_PopDen.csv")
 ChildrenPerWoman <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Fertility.csv")
 ChildMortalityRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Mortality.csv")
 LaborRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_LaborForce.csv")
@@ -36,7 +36,7 @@ GDPPerCapita <- year_to_variable(GDPPerCapita, "GDPPerCapita")
 FemaleUnemploymentRate <- year_to_variable(FemaleUnemploymentRate, "FemaleUnemploymentRate" )
 ElectricityPerCapita <- year_to_variable(ElectricityPerCapita, "ElectricityPerCapita")
 Population <- year_to_variable(Population, "Population")
-PopulationDensity <- year_to_variable(PopulationDensity,  "PopulationDensity")
+#PopulationDensity <- year_to_variable(PopulationDensity,  "PopulationDensity")
 ChildrenPerWoman <- year_to_variable(ChildrenPerWoman, "ChildrenPerWoman")
 ChildMortalityRate <- year_to_variable(ChildMortalityRate,"ChildMortalityRate")
 LaborRate <- year_to_variable(LaborRate, "LaborRate")
@@ -44,12 +44,13 @@ LifeExpectancy <- year_to_variable(LifeExpectancy, "LifeExpectancy")
 
 # Change population variable to Population in millions
 Population$PopulationInMillions <- as.numeric(Population$Population) / 1000000
+Population <- Population[,-4]
 
 # Merge dataset
 WorldBank <- full_join(x = GDPPerCapita, y = FemaleUnemploymentRate[,-2], by = c("Country", "Year"))%>%
   full_join(x = ., y = ElectricityPerCapita[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = Population[,-2], by = c("Country", "Year")) %>%
-  full_join(x = ., y = PopulationDensity[,-2], by = c("Country", "Year")) %>%
+  #full_join(x = ., y = PopulationDensity[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = ChildrenPerWoman[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = ChildMortalityRate[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = LaborRate[,-2], by = c("Country", "Year")) %>%
@@ -74,7 +75,14 @@ diff <- anti_join(x=GTD, y = WorldBank, by ="NumCode")
 # unique(diff$Country)
 # Taiwan | Western Sahara | Vatican City  | Falkland Islands | Wallis and Futuna
 
-write.csv(WorldBank, "WorldBankData.csv")
+# Fix the datatype if the value is not converatble to numeric, set to NA
+WorldBank["GDPPerCapita"] <- lapply(WorldBank["GDPPerCapita"], function(x) as.numeric(as.character(x)))
+WorldBank["FemaleUnemploymentRate"] <- lapply(WorldBank["FemaleUnemploymentRate"], function(x) as.numeric(as.character(x)))
+WorldBank["ElectricityPerCapita"] <- lapply(WorldBank["ElectricityPerCapita"], function(x) as.numeric(as.character(x)))
+WorldBank["ChildrenPerWoman"] <- lapply(WorldBank["ChildrenPerWoman"], function(x) as.numeric(as.character(x)))
+WorldBank["ChildMortalityRate"] <- lapply(WorldBank["ChildMortalityRate"], function(x) as.numeric(as.character(x)))
+WorldBank["LaborRate"] <- lapply(WorldBank["LaborRate"], function(x) as.numeric(as.character(x)))
+WorldBank["LifeExpectancy"] <- lapply(WorldBank["LifeExpectancy"], function(x) as.numeric(as.character(x)))
 
 data_path = "Insert path to data directory"
 write.csv(WorldBank, paste0(data_path,"/WorldBankData.csv"), row.names = FALSE)
