@@ -303,7 +303,7 @@ server <- function(input, output, clientData, session) {
   
   prepareCurrentData <- reactive({
     GTDandGM <- filterDataReactive()
-    
+  
     #Selects data relevant to user input and assigns uniform names to that
     # data, so the ggvis functions can all use the same names
     currentData <- data.frame("ID" = paste(GTDandGM$Country, GTDandGM$Year),

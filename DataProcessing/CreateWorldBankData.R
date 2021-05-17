@@ -52,7 +52,7 @@ WorldBank <- full_join(x = GDPPerCapita, y = FemaleUnemploymentRate[,-2], by = c
   full_join(x = ., y = PopulationDensity[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = ChildrenPerWoman[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = ChildMortalityRate[,-2], by = c("Country", "Year")) %>%
-  full_join(x = ., y = LabourRate[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = LaborRate[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = LifeExpectancy[,-2], by = c("Country", "Year"))
 
 WorldBank$ISOCode <- as.character(WorldBank$ISOCode)
