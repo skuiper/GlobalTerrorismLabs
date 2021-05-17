@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 
 # Load Dataset
-data_path = "C:/Users/stella/Documents/GitHub/GlobalTerrorismLabs/GlobalTerrorismPlots/"
+data_path = "Insert datapath"
 WBdata <- read.csv(paste0(data_path, "WorldBankdata.csv")) 
 GTDdata <- read.csv(paste0(data_path, "fullGTD.csv"), 
                     colClasses=c("Success"="character"))
