@@ -13,7 +13,8 @@ Population <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerroris
 PopulationDensity <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_PopDen.csv")
 ChildrenPerWoman <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Fertility.csv")
 ChildMortalityRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_Mortality.csv")
-LabourRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_LaborForce.csv")
+LaborRate <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_LaborForce.csv")
+LifeExpectancy <- read.csv("https://raw.githubusercontent.com/skuiper/GlobalTerrorismLabs/master/DataProcessing/Data/WorldBank/WB_LifeExpectancy.csv")
 
 # Gather data ----
 year_to_variable <- function (df, var_name){
@@ -38,8 +39,8 @@ Population <- year_to_variable(Population, "Population")
 PopulationDensity <- year_to_variable(PopulationDensity,  "PopulationDensity")
 ChildrenPerWoman <- year_to_variable(ChildrenPerWoman, "ChildrenPerWoman")
 ChildMortalityRate <- year_to_variable(ChildMortalityRate,"ChildMortalityRate")
-LabourRate <- year_to_variable(LabourRate, "LabourRate")
-
+LaborRate <- year_to_variable(LaborRate, "LaborRate")
+LifeExpectancy <- year_to_variable(LifeExpectancy, "LifeExpectancy")
 
 # Change population variable to Population in millions
 Population$PopulationInMillions <- as.numeric(Population$Population) / 1000000
@@ -51,7 +52,8 @@ WorldBank <- full_join(x = GDPPerCapita, y = FemaleUnemploymentRate[,-2], by = c
   full_join(x = ., y = PopulationDensity[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = ChildrenPerWoman[,-2], by = c("Country", "Year")) %>%
   full_join(x = ., y = ChildMortalityRate[,-2], by = c("Country", "Year")) %>%
-  full_join(x = ., y = LabourRate[,-2], by = c("Country", "Year"))
+  full_join(x = ., y = LabourRate[,-2], by = c("Country", "Year")) %>%
+  full_join(x = ., y = LifeExpectancy[,-2], by = c("Country", "Year"))
 
 WorldBank$ISOCode <- as.character(WorldBank$ISOCode)
 
